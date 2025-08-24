@@ -89,6 +89,62 @@ pub enum MovInstruction {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FillerInstruction {
+    pub length: u8,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FixedOut {
+    pub is_ax: bool,
+    pub port_number: u8,
+    pub length: u8,    
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct VariableOut {
+    pub is_ax: bool,
+    pub length: u8,    
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum OutInstruction {
+    Fixed(FixedOut),
+    Variable(VariableOut),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FixedIn {
+    pub is_ax: bool,
+    pub port_number: u8,
+    pub length: u8,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct VariableIn {
+    pub is_ax: bool,
+    pub length: u8,    
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InInstruction {
+    Fixed(FixedIn),
+    Variable(VariableIn),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RepInstruction {
+    Repz,
+    Repnz,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Instruction {
     Mov(MovInstruction),
+    Nop(FillerInstruction),
+    Hlt(FillerInstruction),
+    Cbw(FillerInstruction),
+    Cwd(FillerInstruction),
+    Out(OutInstruction),
+    In(InInstruction),
+    Rep(RepInstruction),
 }

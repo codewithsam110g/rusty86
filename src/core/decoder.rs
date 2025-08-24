@@ -3,13 +3,155 @@ use crate::core::{cpu::Cpu, instruction::*};
 pub fn decode(cpu: &mut Cpu, addr: &u32) -> Instruction {
     let opcode = cpu.read_byte(*addr);
     match opcode {
-        0xB0..0xBF | 0x8E | 0xC6 | 0xC7 | 0xA0..=0xA3 | 0x88..=0x8C => decodeMov(cpu, addr),
+        0xB0..0xBF | 0x8E | 0xC6 | 0xC7 | 0xA0..=0xA3 | 0x88..=0x8C => decode_mov(cpu, addr),
+        0xE4 | 0xE5 | 0xEC | 0xED => decode_in(cpu, addr),
+        0xE6 | 0xE7 | 0xEE | 0xEF => decode_out(cpu, addr),
+        0xF3 | 0xF2 => decode_rep(cpu, addr),
+        0xF4 => decode_hlt(cpu, addr),
+        0x90 => decode_nop(cpu, addr),
+        0x98 => decode_cbw(cpu, addr),
+        0x99 => decode_cwd(cpu, addr),
         _ => {
-            unimplemented!("TODO: Unknown opcode: 0x{:X}", opcode)
+            unimplemented!("TODO: Unknown opcode: 0x{:2X}", opcode)
         }
     }
 }
-fn decodeMov(cpu: &mut Cpu, addr: &u32) -> Instruction {
+
+fn decode_rep(cpu: &mut Cpu, addr: &u32) -> Instruction {
+    let opcode = cpu.read_byte(*addr);
+    cpu.regs.ip += 1;
+    match opcode {
+        0xF3 => Instruction::Rep(RepInstruction::Repz),
+        0xF2 => Instruction::Rep(RepInstruction::Repnz),
+        _ => {
+            unimplemented!("TODO: Unknown Rep opcode: 0x{:2X}", opcode)
+        }
+    }
+}
+
+fn decode_in(cpu: &mut Cpu, addr: &u32) -> Instruction {
+    let opcode = cpu.read_byte(*addr);
+    match opcode {
+        0xE4 => {
+            let port = cpu.read_byte(*addr + 1);
+            cpu.regs.ip += 2;
+            Instruction::In(InInstruction::Fixed(FixedIn {
+                is_ax: false,
+                port_number: port,
+                length: 2,
+            }))
+        }
+        0xE5 => {
+            let port = cpu.read_byte(*addr + 1);
+            cpu.regs.ip += 2;
+            Instruction::In(InInstruction::Fixed(FixedIn {
+                is_ax: true,
+                port_number: port,
+                length: 2,
+            }))
+        }
+        0xEC => {
+            cpu.regs.ip += 1;
+            Instruction::In(InInstruction::Variable(VariableIn {
+                is_ax: false,
+                length: 1,
+            }))
+        }
+        0xED => {
+            cpu.regs.ip += 1;
+            Instruction::In(InInstruction::Variable(VariableIn {
+                is_ax: true,
+                length: 1,
+            }))
+        }
+        _ => {
+            unimplemented!("TODO: In opcode: 0x{:2X}", opcode)
+        }
+    }
+}
+
+fn decode_out(cpu: &mut Cpu, addr: &u32) -> Instruction {
+    let opcode = cpu.read_byte(*addr);
+    match opcode {
+        0xE6 => {
+            let port = cpu.read_byte(*addr + 1);
+            cpu.regs.ip += 2;
+            Instruction::Out(OutInstruction::Fixed(FixedOut {
+                is_ax: false,
+                port_number: port,
+                length: 2,
+            }))
+        }
+        0xE7 => {
+            let port = cpu.read_byte(*addr + 1);
+            cpu.regs.ip += 2;
+            Instruction::Out(OutInstruction::Fixed(FixedOut {
+                is_ax: true,
+                port_number: port,
+                length: 2,
+            }))
+        }
+        0xEE => {
+            cpu.regs.ip += 1;
+            Instruction::Out(OutInstruction::Variable(VariableOut {
+                is_ax: false,
+                length: 1,
+            }))
+        }
+        0xE8 => {
+            cpu.regs.ip += 1;
+            Instruction::Out(OutInstruction::Variable(VariableOut {
+                is_ax: true,
+                length: 1,
+            }))
+        }
+        _ => {
+            unimplemented!("TODO: OUT opcode: 0x{:2X}", opcode)
+        }
+    }
+}
+
+fn decode_cbw(cpu: &mut Cpu, addr: &u32) -> Instruction {
+    let opcode = cpu.read_byte(*addr);
+    if opcode == 0x98 {
+        cpu.regs.ip += 1;
+        Instruction::Cbw(FillerInstruction { length: 1 })
+    } else {
+        unimplemented!("Wrong CBW opcode: 0x{:2X}", opcode)
+    }
+}
+
+fn decode_cwd(cpu: &mut Cpu, addr: &u32) -> Instruction {
+    let opcode = cpu.read_byte(*addr);
+    if opcode == 0x99 {
+        cpu.regs.ip += 1;
+        Instruction::Cwd(FillerInstruction { length: 1 })
+    } else {
+        unimplemented!("Wrong CWD opcode: 0x{:2X}", opcode)
+    }
+}
+
+fn decode_hlt(cpu: &mut Cpu, addr: &u32) -> Instruction {
+    let opcode = cpu.read_byte(*addr);
+    if opcode == 0xF4 {
+        cpu.regs.ip += 1;
+        Instruction::Hlt(FillerInstruction { length: 1 })
+    } else {
+        unimplemented!("Wrong HLT opcode: 0x{:2X}", opcode)
+    }
+}
+
+fn decode_nop(cpu: &mut Cpu, addr: &u32) -> Instruction {
+    let opcode = cpu.read_byte(*addr);
+    if opcode == 0x90 {
+        cpu.regs.ip += 1;
+        Instruction::Nop(FillerInstruction { length: 1 })
+    } else {
+        unimplemented!("Wrong NOP opcode: 0x{:2X}", opcode)
+    }
+}
+
+fn decode_mov(cpu: &mut Cpu, addr: &u32) -> Instruction {
     let opcode = cpu.read_byte(*addr);
     match opcode {
         0xB0..=0xB7 => {
@@ -147,7 +289,7 @@ fn decodeMov(cpu: &mut Cpu, addr: &u32) -> Instruction {
         }
         _ => {
             // Default case
-            unimplemented!("TODO: Wrong Mov Opcode")
+            unimplemented!("TODO: Wrong MOV Opcode {:2X}", opcode)
         }
     }
 }
