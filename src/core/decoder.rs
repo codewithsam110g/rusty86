@@ -3,14 +3,17 @@ use crate::core::{cpu::Cpu, instruction::*};
 pub fn decode(cpu: &mut Cpu, addr: &u32) -> Instruction {
     let opcode = cpu.read_byte(*addr);
     match opcode {
-        0xB0..0xBF | 0x8E | 0xC6 | 0xC7 | 0xA0..=0xA3 | 0x88..=0x8C => decode_mov(cpu, addr),
+        0xB0..=0xBF | 0x8E | 0xC6 | 0xC7 | 0xA0..=0xA3 | 0x88..=0x8C => decode_mov(cpu, addr),
+        0x2E | 0x3E | 0x26 | 0x36 => decode_seg_override(cpu, addr),
         0xE4 | 0xE5 | 0xEC | 0xED => decode_in(cpu, addr),
         0xE6 | 0xE7 | 0xEE | 0xEF => decode_out(cpu, addr),
         0xC3 | 0xCB | 0xC2 | 0xCA => decode_ret(cpu, addr),
         0xF8 | 0xFC | 0xFA => decode_clear_flags(cpu, addr),
         0xF9 | 0xFD | 0xFB => decode_store_flags(cpu, addr),
         0xCC | 0xCD | 0xCE => decode_int(cpu, addr),
+        0x70..=0x7F => decode_jump(cpu, addr),
         0xF3 | 0xF2 => decode_rep(cpu, addr),
+        0xE3 => decode_jcxz(cpu, addr),
         0xF4 => decode_hlt(cpu, addr),
         0x90 => decode_nop(cpu, addr),
         0x98 => decode_cbw(cpu, addr),
@@ -36,6 +39,68 @@ pub fn decode(cpu: &mut Cpu, addr: &u32) -> Instruction {
     }
 }
 
+fn decode_seg_override(cpu: &mut Cpu, addr: &u32) -> Instruction {
+    let opcode = cpu.read_byte(*addr);
+    cpu.regs.ip += 1;
+    match opcode {
+        0x2E => Instruction::Seg(SegmentOverride {
+            segment: SegmentRegister::CS,
+            length: 1,
+        }),
+        0x3E => Instruction::Seg(SegmentOverride {
+            segment: SegmentRegister::DS,
+            length: 1,
+        }),
+        0x26 => Instruction::Seg(SegmentOverride {
+            segment: SegmentRegister::ES,
+            length: 1,
+        }),
+        0x36 => Instruction::Seg(SegmentOverride {
+            segment: SegmentRegister::SS,
+            length: 1,
+        }),
+        _ => {
+            cpu.regs.ip -= 1;
+            unimplemented!("TODO: Unknown Segment Override: 0x{:2X}", opcode)
+        }
+    }
+}
+
+fn decode_jcxz(cpu: &mut Cpu, addr: &u32) -> Instruction {
+    let opcode = cpu.read_byte(*addr);
+    let signed_disp = cpu.read_byte(*addr + 1);
+    match opcode {
+        0x9B => {
+            cpu.regs.ip += 2;
+            Instruction::Jcxz(JcxzInstruction {
+                signed_disp: signed_disp as i8,
+                length: 2,
+            })
+        }
+        _ => {
+            unimplemented!("TODO: Unknown Jcxz opcode: 0x{:2X}", opcode)
+        }
+    }
+}
+
+fn decode_jump(cpu: &mut Cpu, addr: &u32) -> Instruction {
+    let opcode = cpu.read_byte(*addr);
+    cpu.regs.ip += 2;
+    let signed_disp = cpu.read_byte(*addr + 1);
+    let range = 0x70..=0x7F;
+    let is_in_range = range.contains(&opcode) || opcode == 0xE3;
+    if !is_in_range {
+        cpu.regs.ip -= 2;
+        unimplemented!("TODO: Unknown Jcond opcode: 0x{:2X}", opcode)
+    } else {
+        Instruction::Jcond(JumpInstruction {
+            jump_condition: JumpCondition::try_from(opcode - 0x70).unwrap(),
+            signed_disp: signed_disp as i8,
+            length: 2,
+        })
+    }
+}
+
 fn decode_ret(cpu: &mut Cpu, addr: &u32) -> Instruction {
     let opcode = cpu.read_byte(*addr);
     match opcode {
@@ -55,8 +120,8 @@ fn decode_ret(cpu: &mut Cpu, addr: &u32) -> Instruction {
         }
         0xC2 => {
             cpu.regs.ip += 3;
-            let data_l = cpu.read_byte(*addr+1);
-            let data_h = cpu.read_byte(*addr+2);
+            let data_l = cpu.read_byte(*addr + 1);
+            let data_h = cpu.read_byte(*addr + 2);
             let data: u16 = ((data_h as u16) << 8) | (data_l as u16);
             Instruction::Ret(RetInstruction::RetAdd(RetAddIntraInter {
                 is_inter: false,
@@ -66,8 +131,8 @@ fn decode_ret(cpu: &mut Cpu, addr: &u32) -> Instruction {
         }
         0xCA => {
             cpu.regs.ip += 3;
-            let data_l = cpu.read_byte(*addr+1);
-            let data_h = cpu.read_byte(*addr+2);
+            let data_l = cpu.read_byte(*addr + 1);
+            let data_h = cpu.read_byte(*addr + 2);
             let data: u16 = ((data_h as u16) << 8) | (data_l as u16);
             Instruction::Ret(RetInstruction::RetAdd(RetAddIntraInter {
                 is_inter: true,
@@ -76,7 +141,7 @@ fn decode_ret(cpu: &mut Cpu, addr: &u32) -> Instruction {
             }))
         }
         _ => {
-            unimplemented!("TODO: Unknown XLAT opcode: 0x{:2X}", opcode)
+            unimplemented!("TODO: Unknown RET opcode: 0x{:2X}", opcode)
         }
     }
 }
@@ -84,7 +149,7 @@ fn decode_ret(cpu: &mut Cpu, addr: &u32) -> Instruction {
 fn decode_xlat(cpu: &mut Cpu, addr: &u32) -> Instruction {
     let opcode = cpu.read_byte(*addr);
     match opcode {
-        0x9B => {
+        0xD7 => {
             cpu.regs.ip += 1;
             Instruction::Xlat(FillerInstruction { length: 1 })
         }
@@ -214,9 +279,9 @@ fn decode_store_flags(cpu: &mut Cpu, addr: &u32) -> Instruction {
     let opcode = cpu.read_byte(*addr);
     cpu.regs.ip += 1;
     match opcode {
-        0xF8 => Instruction::Stc(FillerInstruction { length: 1 }),
-        0xFC => Instruction::Std(FillerInstruction { length: 1 }),
-        0xFA => Instruction::Sti(FillerInstruction { length: 1 }),
+        0xF9 => Instruction::Stc(FillerInstruction { length: 1 }),
+        0xFD => Instruction::Std(FillerInstruction { length: 1 }),
+        0xFB => Instruction::Sti(FillerInstruction { length: 1 }),
         _ => {
             cpu.regs.ip -= 1;
             unimplemented!("TODO: Unknown Store Flag opcode: 0x{:2X}", opcode)
@@ -240,7 +305,7 @@ fn decode_clear_flags(cpu: &mut Cpu, addr: &u32) -> Instruction {
 fn decode_cmc(cpu: &mut Cpu, addr: &u32) -> Instruction {
     let opcode = cpu.read_byte(*addr);
     match opcode {
-        0xF8 => {
+        0xF5 => {
             cpu.regs.ip += 1;
             Instruction::Cmc(FillerInstruction { length: 1 })
         }
@@ -253,7 +318,7 @@ fn decode_cmc(cpu: &mut Cpu, addr: &u32) -> Instruction {
 fn decode_daa(cpu: &mut Cpu, addr: &u32) -> Instruction {
     let opcode = cpu.read_byte(*addr);
     match opcode {
-        0x37 => {
+        0x27 => {
             cpu.regs.ip += 1;
             Instruction::Daa(FillerInstruction { length: 1 })
         }
@@ -266,7 +331,7 @@ fn decode_daa(cpu: &mut Cpu, addr: &u32) -> Instruction {
 fn decode_das(cpu: &mut Cpu, addr: &u32) -> Instruction {
     let opcode = cpu.read_byte(*addr);
     match opcode {
-        0x37 => {
+        0x2F => {
             cpu.regs.ip += 1;
             Instruction::Das(FillerInstruction { length: 1 })
         }
@@ -323,7 +388,7 @@ fn decode_aad(cpu: &mut Cpu, addr: &u32) -> Instruction {
     let opcode = cpu.read_byte(*addr);
     let base = cpu.read_byte(*addr + 1);
     match opcode {
-        0xD4 => {
+        0xD5 => {
             cpu.regs.ip += 2;
             Instruction::Aad(AAMDBase {
                 base: base,
@@ -417,7 +482,7 @@ fn decode_out(cpu: &mut Cpu, addr: &u32) -> Instruction {
                 length: 1,
             }))
         }
-        0xE8 => {
+        0xEF => {
             cpu.regs.ip += 1;
             Instruction::Out(OutInstruction::Variable(VariableOut {
                 is_ax: true,

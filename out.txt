@@ -1,0 +1,428 @@
+Program loaded. Type 's' to step, 'r' for registers, 'q' to quit.
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Nop(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Clc(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Stc(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Cmc(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Cld(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Std(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Cli(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Sti(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Mov(
+    ImmToReg(
+        MovImmToReg {
+            dest: AX,
+            imm: Word(0xFF80),
+            length: 3,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Cbw(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Cwd(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Pushf(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Popf(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Lahf(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Sahf(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Mov(
+    ImmToReg(
+        MovImmToReg {
+            dest: AL,
+            imm: Byte(0x05),
+            length: 2,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Mov(
+    ImmToReg(
+        MovImmToReg {
+            dest: BL,
+            imm: Byte(0x03),
+            length: 2,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Aaa(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Mov(
+    ImmToReg(
+        MovImmToReg {
+            dest: AL,
+            imm: Byte(0x09),
+            length: 2,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Mov(
+    ImmToReg(
+        MovImmToReg {
+            dest: BL,
+            imm: Byte(0x05),
+            length: 2,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Aas(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Mov(
+    ImmToReg(
+        MovImmToReg {
+            dest: AL,
+            imm: Byte(0x07),
+            length: 2,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Aam(
+    AAMDBase {
+        base: 10,
+        length: 2,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Aam(
+    AAMDBase {
+        base: 5,
+        length: 2,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Mov(
+    ImmToReg(
+        MovImmToReg {
+            dest: AX,
+            imm: Word(0x107),
+            length: 3,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Aad(
+    AAMDBase {
+        base: 10,
+        length: 2,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Aad(
+    AAMDBase {
+        base: 8,
+        length: 2,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Mov(
+    ImmToReg(
+        MovImmToReg {
+            dest: AL,
+            imm: Byte(0x9B),
+            length: 2,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Daa(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Das(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Mov(
+    ImmToReg(
+        MovImmToReg {
+            dest: BX,
+            imm: Word(0x154),
+            length: 3,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Mov(
+    ImmToReg(
+        MovImmToReg {
+            dest: AL,
+            imm: Byte(0x02),
+            length: 2,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Xlat(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Xlat(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Mov(
+    ImmToReg(
+        MovImmToReg {
+            dest: AL,
+            imm: Byte(0xFF),
+            length: 2,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Out(
+    Fixed(
+        FixedOut {
+            is_ax: false,
+            port_number: 128,
+            length: 2,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: In(
+    Fixed(
+        FixedIn {
+            is_ax: false,
+            port_number: 64,
+            length: 2,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Mov(
+    ImmToReg(
+        MovImmToReg {
+            dest: DX,
+            imm: Word(0x3F8),
+            length: 3,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Mov(
+    ImmToReg(
+        MovImmToReg {
+            dest: AX,
+            imm: Word(0x1234),
+            length: 3,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Out(
+    Variable(
+        VariableOut {
+            is_ax: false,
+            length: 1,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Out(
+    Variable(
+        VariableOut {
+            is_ax: true,
+            length: 1,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: In(
+    Variable(
+        VariableIn {
+            is_ax: false,
+            length: 1,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: In(
+    Variable(
+        VariableIn {
+            is_ax: true,
+            length: 1,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Int(
+    Int3(
+        FillerInstruction {
+            length: 1,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Int(
+    IntImm8(
+        IntImm8Instruction {
+            int_vector: 33,
+            length: 2,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Iret(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Nop(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Nop(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Ret(
+    Ret(
+        RetIntraInter {
+            is_inter: false,
+            length: 1,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Ret(
+    RetAdd(
+        RetAddIntraInter {
+            is_inter: false,
+            data: 16,
+            length: 3,
+        },
+    ),
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Lock(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Nop(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Rep(
+    Repz,
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Nop(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Rep(
+    Repnz,
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Nop(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l
+Decoded Instruction: Hlt(
+    FillerInstruction {
+        length: 1,
+    },
+)
+[?2004h[?2026h[K>> [3C[?2026ls[?2004l

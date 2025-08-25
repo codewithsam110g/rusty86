@@ -172,6 +172,46 @@ pub enum RetInstruction {
     Ret(RetIntraInter),
     RetAdd(RetAddIntraInter),
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, TryFromPrimitive)]
+#[repr(u8)]
+pub enum JumpCondition {
+    JO,
+    JNO,
+    JB_JC_JNAE,
+    JAE_JNB_JNC,
+    JE_JZ,
+    JNE_JNZ,
+    JBE_JNA,
+    JA_JNBE,
+    JS,
+    JNS,
+    JP_JPE,
+    JNP_JPO,
+    JL_JNGE,
+    JGE_JNL,
+    JLE_JNG,
+    JG_JNLE,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct JumpInstruction {
+    pub jump_condition: JumpCondition,
+    pub signed_disp: i8,
+    pub length: u8,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct JcxzInstruction {
+    pub signed_disp: i8,
+    pub length: u8,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SegmentOverride {
+    pub segment: SegmentRegister,
+    pub length: u8,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Instruction {
     Mov(MovInstruction),
@@ -205,4 +245,7 @@ pub enum Instruction {
     Out(OutInstruction),
     In(InInstruction),
     Rep(RepInstruction),
+    Jcond(JumpInstruction),
+    Jcxz(JcxzInstruction),
+    Seg(SegmentOverride),
 }
