@@ -97,13 +97,13 @@ pub struct FillerInstruction {
 pub struct FixedOut {
     pub is_ax: bool,
     pub port_number: u8,
-    pub length: u8,    
+    pub length: u8,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct VariableOut {
     pub is_ax: bool,
-    pub length: u8,    
+    pub length: u8,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -122,7 +122,7 @@ pub struct FixedIn {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct VariableIn {
     pub is_ax: bool,
-    pub length: u8,    
+    pub length: u8,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -138,12 +138,70 @@ pub enum RepInstruction {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct AAMDBase {
+    pub base: u8,
+    pub length: u8,
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct IntImm8Instruction {
+    pub int_vector: u8,
+    pub length: u8,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum IntInstruction {
+    Int3(FillerInstruction),
+    IntImm8(IntImm8Instruction),
+    Into(FillerInstruction),
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RetIntraInter {
+    pub is_inter: bool,
+    pub length: u8,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RetAddIntraInter {
+    pub is_inter: bool,
+    pub data: u16,
+    pub length: u8,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RetInstruction {
+    Ret(RetIntraInter),
+    RetAdd(RetAddIntraInter),
+}
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Instruction {
     Mov(MovInstruction),
     Nop(FillerInstruction),
     Hlt(FillerInstruction),
+    Lock(FillerInstruction),
     Cbw(FillerInstruction),
     Cwd(FillerInstruction),
+    Aaa(FillerInstruction),
+    Aad(AAMDBase),
+    Aam(AAMDBase),
+    Aas(FillerInstruction),
+    Daa(FillerInstruction),
+    Das(FillerInstruction),
+    Clc(FillerInstruction),
+    Cld(FillerInstruction),
+    Cli(FillerInstruction),
+    Stc(FillerInstruction),
+    Std(FillerInstruction),
+    Sti(FillerInstruction),
+    Cmc(FillerInstruction),
+    Sahf(FillerInstruction),
+    Lahf(FillerInstruction),
+    Pushf(FillerInstruction),
+    Popf(FillerInstruction),
+    Iret(FillerInstruction),
+    Wait(FillerInstruction),
+    Xlat(FillerInstruction),
+    Ret(RetInstruction),
+    Int(IntInstruction),
     Out(OutInstruction),
     In(InInstruction),
     Rep(RepInstruction),
