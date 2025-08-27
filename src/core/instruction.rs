@@ -35,6 +35,12 @@ pub enum SegmentRegister {
     DS,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Registers {
+    Gpr(Register),
+    Seg(SegmentRegister),
+}
+
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Immediate {
     Byte(u8),
@@ -81,11 +87,70 @@ pub struct MovMemToAcc {
     pub to_acc: bool,
     pub length: u8,
 }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Displacement {
+    Zero(u8),
+    Byte(i8),
+    Word(i16),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MovMemToReg {
+    // Always to REG part in modrm
+    // R/M Part will always encode a Mem addr
+    pub is_16bit: bool,
+    pub decoded_rm: DecodedRMMode,
+    pub decdode_reg: Registers,
+    pub displacement: Displacement,
+    pub length: u8,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DecodedRMMode {
+    Mem(MemoryMode),
+    Reg(Register),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MovRegToRM {
+    // Always to RM part in modrm
+    pub is_16bit: bool,
+    pub is_rm_a_reg: bool,
+    pub decoded_rm: DecodedRMMode,
+    pub decdode_reg: Registers,
+    pub displacement: Displacement,
+    pub length: u8,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MovSregToFromRM {
+    pub to_rm: bool,
+    pub is_rm_a_reg: bool,
+    pub decoded_rm: DecodedRMMode,
+    pub decdode_reg: Registers,
+    pub displacement: Displacement,
+    pub length: u8,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct MovImmToRM {
+    pub is_16bit: bool,
+    pub is_rm_a_reg: bool,
+    pub decoded_rm: DecodedRMMode,
+    pub displacement: Displacement,
+    pub imm: Immediate,
+    pub length: u8,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MovInstruction {
-    ImmToReg(MovImmToReg),
-    MemToAcc(MovMemToAcc),
+    ImmToReg(MovImmToReg),     // Type 3
+    MemToAcc(MovMemToAcc),     // Type 2
+    MemToReg(MovMemToReg),     // Type 1 8Ah, 8Bh
+    RegToRM(MovRegToRM),       // Type 1 88h, 89h
+    SregToRM(MovSregToFromRM), // Type 5 8Ch
+    RMToSreg(MovSregToFromRM), // Type 5 8Eh
+    ImmToRM(MovImmToRM),       // Type 1 C6h, C7h
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -210,6 +275,57 @@ pub struct JcxzInstruction {
 pub struct SegmentOverride {
     pub segment: SegmentRegister,
     pub length: u8,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, TryFromPrimitive)]
+#[repr(u8)]
+pub enum MemoryMode {
+    BX_SI,
+    BX_DI,
+    BP_SI,
+    BP_DI,
+    SI,
+    DI,
+    DISP16,
+    BX,
+
+    BX_SI_DISP8,
+    BX_DI_DISP8,
+    BP_SI_DISP8,
+    BP_DI_DISP8,
+    SI_DISP8,
+    DI_DISP8,
+    BP_DISP8,
+    BX_DISP8,
+
+    BX_SI_DISP16,
+    BX_DI_DISP16,
+    BP_SI_DISP16,
+    BP_DI_DISP16,
+    SI_DISP16,
+    DI_DISP16,
+    BP_DISP16,
+    BX_DIS168,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RMMode {
+    Mem(MemoryMode),
+    Reg(u8),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DisplacementMode {
+    ZERO,
+    BYTE,
+    WORD,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ModRM {
+    pub displacement_mode: DisplacementMode,
+    pub reg_part: u8,
+    pub rm_mode: RMMode,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -39,6 +39,43 @@ pub fn decode(cpu: &mut Cpu, addr: &u32) -> Instruction {
     }
 }
 
+fn decode_modrm_byte(modrm: u8) -> ModRM {
+    let mod_bits: u8 = (modrm >> 6) & 0b11;
+    let reg_bits: u8 = (modrm >> 3) & 0b111;
+    let rm_bits: u8 = modrm & 0b111;
+
+    // This is the new, more direct and correct way to determine displacement.
+    let disp_mode = if mod_bits == 0b01 {
+        DisplacementMode::BYTE
+    } else if mod_bits == 0b10 {
+        DisplacementMode::WORD
+    } else if mod_bits == 0b00 && rm_bits == 0b110 {
+        DisplacementMode::WORD
+    } else {
+        DisplacementMode::ZERO
+    };
+
+    if mod_bits != 0b11 {
+        // --- Memory Mode ---
+        ModRM {
+            reg_part: reg_bits,
+            displacement_mode: disp_mode,
+            rm_mode: RMMode::Mem(if mod_bits == 0b00 && rm_bits == 0b110 {
+                MemoryMode::DISP16
+            } else {
+                MemoryMode::try_from((mod_bits * 8) + rm_bits).unwrap()
+            }),
+        }
+    } else {
+        // --- Register Mode ---
+        ModRM {
+            reg_part: reg_bits,
+            displacement_mode: DisplacementMode::ZERO, // No displacement in register mode
+            rm_mode: RMMode::Reg(rm_bits),
+        }
+    }
+}
+
 fn decode_seg_override(cpu: &mut Cpu, addr: &u32) -> Instruction {
     let opcode = cpu.read_byte(*addr);
     cpu.regs.ip += 1;
@@ -565,21 +602,117 @@ fn decode_mov(cpu: &mut Cpu, addr: &u32) -> Instruction {
             let mov_instruction = MovInstruction::ImmToReg(mov_struct);
             Instruction::Mov(mov_instruction)
         }
-        0x8E => {
-            // Handle 8E
-            unimplemented!("TODO: Decode MOV opcode 8e")
+        0x8E | 0x8C => {
+            let modrm_byte = cpu.read_byte(*addr + 1);
+            let modrm = decode_modrm_byte(modrm_byte);
+            let is_reg = matches!(modrm.rm_mode, RMMode::Reg(_));
+            let to_rm = opcode == 0x8C;
+
+            let regs = Registers::Seg(SegmentRegister::try_from(modrm.reg_part).unwrap());
+
+            let decoded_rm = match is_reg {
+                true => {
+                    let rm_val = match modrm.rm_mode {
+                        RMMode::Reg(val) => val,
+                        _ => unreachable!(),
+                    };
+                    DecodedRMMode::Reg(Register::try_from(8 + rm_val).unwrap())
+                }
+                false => {
+                    let addr_mode = match modrm.rm_mode {
+                        RMMode::Mem(val) => val,
+                        _ => unreachable!(),
+                    };
+                    DecodedRMMode::Mem(addr_mode)
+                }
+            };
+
+            // Extract displacement and calculate instruction length
+            let (displacement, length) = match modrm.displacement_mode {
+                DisplacementMode::BYTE => {
+                    let disp8 = cpu.read_byte(*addr + 2);
+                    (Displacement::Byte(disp8 as i8), 3)
+                }
+                DisplacementMode::WORD => {
+                    let disp16 = cpu.read_word(*addr + 2);
+                    (Displacement::Word(disp16 as i16), 4)
+                }
+                DisplacementMode::ZERO => (Displacement::Zero(0), 2),
+            };
+
+            cpu.regs.ip += length;
+
+            // Create appropriate instruction variant
+            let internal_struct = MovSregToFromRM {
+                is_rm_a_reg: is_reg,
+                decdode_reg: regs,
+                to_rm: to_rm,
+                decoded_rm,
+                displacement,
+                length: length as u8,
+            };
+            let mov_instruction = if to_rm {
+                MovInstruction::SregToRM(internal_struct)
+            } else {
+                MovInstruction::RMToSreg(internal_struct)
+            };
+
+            Instruction::Mov(mov_instruction)
         }
-        0x8C => {
-            // Handle 8C
-            unimplemented!("TODO: Decode MOV opcode 8c")
-        }
-        0xC6 => {
-            // Handle C6
-            unimplemented!("TODO: Decode MOV opcode c6")
-        }
-        0xC7 => {
-            // Handle C7
-            unimplemented!("TODO: Decode MOV opcode c7")
+        0xC6 | 0xC7 => {
+            let is_16bit = opcode == 0xC7;
+            let modrm_byte = cpu.read_byte(*addr + 1);
+            let modrm = decode_modrm_byte(modrm_byte);
+            let is_reg = matches!(modrm.rm_mode, RMMode::Reg(_));
+
+            let decoded_rm = match is_reg {
+                true => {
+                    let rm_val = match modrm.rm_mode {
+                        RMMode::Reg(val) => val,
+                        _ => unreachable!(),
+                    };
+                    DecodedRMMode::Reg(Register::try_from(((is_16bit as u8) * 8) + rm_val).unwrap())
+                }
+                false => {
+                    let addr_mode = match modrm.rm_mode {
+                        RMMode::Mem(val) => val,
+                        _ => unreachable!(),
+                    };
+                    DecodedRMMode::Mem(addr_mode)
+                }
+            };
+
+            // Extract displacement and calculate instruction length
+            let (displacement, mut length) = match modrm.displacement_mode {
+                DisplacementMode::BYTE => {
+                    let disp8 = cpu.read_byte(*addr + 2);
+                    (Displacement::Byte(disp8 as i8), 3)
+                }
+                DisplacementMode::WORD => {
+                    let disp16 = cpu.read_word(*addr + 2);
+                    (Displacement::Word(disp16 as i16), 4)
+                }
+                DisplacementMode::ZERO => (Displacement::Zero(0), 2),
+            };
+            let imm = if is_16bit {
+                let val = Immediate::Word(cpu.read_word(*addr + length));
+                length += 2;
+                val
+            } else {
+                let val = Immediate::Byte(cpu.read_byte(*addr + length));
+                length += 1;
+                val
+            };
+            cpu.regs.ip += length as u16;
+            let mov_struct = MovInstruction::ImmToRM(MovImmToRM {
+                is_16bit: is_16bit,
+                is_rm_a_reg: is_reg,
+                decoded_rm: decoded_rm,
+                displacement: displacement,
+                imm: imm,
+                length: (length as u8),
+            });
+            Instruction::Mov(mov_struct)
         }
         0xA0..=0xA3 => {
             // Opcode --- AddrL --- AddrH === Max 3 bytes
@@ -668,8 +801,69 @@ fn decode_mov(cpu: &mut Cpu, addr: &u32) -> Instruction {
             }
         }
         0x88..=0x8B => {
-            // Handle 88–8B
-            unimplemented!("TODO: Decode MOV opcode 88->8B")
+            let modrm_byte = cpu.read_byte(*addr + 1);
+            let modrm = decode_modrm_byte(modrm_byte);
+            let is_reg = matches!(modrm.rm_mode, RMMode::Reg(_));
+            let is_16bit = opcode == 0x89 || opcode == 0x8B;
+            let is_mem_to_reg = opcode == 0x8A || opcode == 0x8B;
+
+            let regs = Registers::Gpr(
+                Register::try_from(((is_16bit as u8) * 8) + modrm.reg_part).unwrap(),
+            );
+
+            let decoded_rm = match is_reg {
+                true => {
+                    let rm_val = match modrm.rm_mode {
+                        RMMode::Reg(val) => val,
+                        _ => unreachable!(),
+                    };
+                    DecodedRMMode::Reg(Register::try_from(((is_16bit as u8) * 8) + rm_val).unwrap())
+                }
+                false => {
+                    let addr_mode = match modrm.rm_mode {
+                        RMMode::Mem(val) => val,
+                        _ => unreachable!(),
+                    };
+                    DecodedRMMode::Mem(addr_mode)
+                }
+            };
+
+            // Extract displacement and calculate instruction length
+            let (displacement, length) = match modrm.displacement_mode {
+                DisplacementMode::BYTE => {
+                    let disp8 = cpu.read_byte(*addr + 2);
+                    (Displacement::Byte(disp8 as i8), 3)
+                }
+                DisplacementMode::WORD => {
+                    let disp16 = cpu.read_word(*addr + 2);
+                    (Displacement::Word(disp16 as i16), 4)
+                }
+                DisplacementMode::ZERO => (Displacement::Zero(0), 2),
+            };
+
+            cpu.regs.ip += length;
+
+            // Create appropriate instruction variant
+            let mov_instruction = if is_mem_to_reg {
+                MovInstruction::MemToReg(MovMemToReg {
+                    is_16bit,
+                    decdode_reg: regs,
+                    decoded_rm,
+                    displacement,
+                    length: length as u8,
+                })
+            } else {
+                MovInstruction::RegToRM(MovRegToRM {
+                    is_rm_a_reg: is_reg,
+                    is_16bit,
+                    decdode_reg: regs,
+                    decoded_rm,
+                    displacement,
+                    length: length as u8,
+                })
+            };
+
+            Instruction::Mov(mov_instruction)
         }
         _ => {
             // Default case
