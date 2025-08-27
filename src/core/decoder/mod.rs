@@ -11,6 +11,7 @@ mod nop;
 mod convert;
 mod ascii_decimal;
 mod subroutine;
+mod loop_set;
 
 use crate::core::cpu::Cpu;
 use crate::core::instruction::*;
@@ -25,6 +26,7 @@ pub fn decode(cpu: &mut Cpu, addr: &u32) -> Instruction {
         0xC3 | 0xCB | 0xC2 | 0xCA => subroutine::decode_ret(cpu, addr),
         0xF8 | 0xFC | 0xFA => flags::decode_clear_flags(cpu, addr),
         0xF9 | 0xFD | 0xFB => flags::decode_store_flags(cpu, addr),
+        0xE0 | 0xE1 | 0xE2 => loop_set::decode_loop_set(cpu, addr),
         0xCC | 0xCD | 0xCE => interrupt::decode_int(cpu, addr),
         0x70..=0x7F => jump::decode_jcond(cpu, addr),
         0xF3 | 0xF2 => prefix::decode_rep(cpu, addr),

@@ -328,6 +328,21 @@ pub struct ModRM {
     pub rm_mode: RMMode,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, TryFromPrimitive)]
+#[repr(u8)]
+pub enum LoopCondition{
+    NZERO_NEQUAL,
+    ZERO_EQUAL,
+    DIRECT,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LoopInstruction{
+    pub loop_condition: LoopCondition,
+    pub disp: i8,
+    pub length: u8,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Instruction {
     Mov(MovInstruction),
@@ -364,4 +379,5 @@ pub enum Instruction {
     Jcond(JumpInstruction),
     Jcxz(JcxzInstruction),
     Seg(SegmentOverride),
+    Loop(LoopInstruction)
 }
