@@ -1,17 +1,18 @@
-mod xlat;
+mod ascii_decimal;
+mod convert;
 mod flags;
 mod in_out;
 mod interrupt;
 mod jump;
+mod load;
+mod loop_set;
 mod mov;
+mod nop;
 mod prefix;
 mod stack;
-mod utils;
-mod nop;
-mod convert;
-mod ascii_decimal;
 mod subroutine;
-mod loop_set;
+mod utils;
+mod xlat;
 
 use crate::core::cpu::Cpu;
 use crate::core::instruction::*;
@@ -28,6 +29,7 @@ pub fn decode(cpu: &mut Cpu, addr: &u32) -> Instruction {
         0xF9 | 0xFD | 0xFB => flags::decode_store_flags(cpu, addr),
         0xE0 | 0xE1 | 0xE2 => loop_set::decode_loop_set(cpu, addr),
         0xCC | 0xCD | 0xCE => interrupt::decode_int(cpu, addr),
+        0xC4 | 0xC5 | 0x8D => load::decode_load_pointer(cpu, addr),
         0x70..=0x7F => jump::decode_jcond(cpu, addr),
         0xF3 | 0xF2 => prefix::decode_rep(cpu, addr),
         0xE3 => jump::decode_jcxz(cpu, addr),
